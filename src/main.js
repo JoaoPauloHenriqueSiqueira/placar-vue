@@ -3,12 +3,18 @@ import BootstrapVue from 'bootstrap-vue/dist/bootstrap-vue.esm';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 import 'bootstrap/dist/css/bootstrap.css';
 import { Time } from './time'
+import _ from 'lodash';
 
 Vue.use(BootstrapVue);
 
 new Vue({
   el: '#app',
   data: {
+    filter: '',
+    order: {
+      keys: ['pontos', 'gm', 'gs'],
+      sort: ['desc', 'desc', 'asc']
+    },
     colunas: ['nome', 'pontos', 'gm', "gs", "saldo"],
     times: [
       new Time('Palmeiras', require('./assets/palmeiras_60x60.png')),
@@ -42,24 +48,53 @@ new Vue({
         gols: 0
       }
     },
+    view: 'tabela'
   },
-  created() {
-    let index = Math.floor(Math.random() * 20);
-    let indexFora = Math.floor(Math.random() * 20);
+  // created() {
+  //   let index = Math.floor(Math.random() * 20);
+  //   let indexFora = Math.floor(Math.random() * 20);
 
-    this.novoJogo.casa.time = this.times[index];
-    this.novoJogo.casa.gols = 0;
+  //   this.novoJogo.casa.time = this.times[index];
+  //   this.novoJogo.casa.gols = 0;
 
-    this.novoJogo.fora.time = this.times[indexFora];
-    this.novoJogo.fora.gols = 0;
+  //   this.novoJogo.fora.time = this.times[indexFora];
+  //   this.novoJogo.fora.gols = 0;
 
-  },
+  // },
   methods: {
     fimJogo() {
       let timeAdversario = this.novoJogo.fora.time;
       let gols = +this.novoJogo.casa.gols;
       let golsAdversario = +this.novoJogo.fora.gols;
       this.novoJogo.casa.time.fimJogo(timeAdversario, gols, golsAdversario);
+      this.showView('tabela');
+    },
+    createNovoJogo() {
+      let index = Math.floor(Math.random() * 20);
+      let indexFora = Math.floor(Math.random() * 20);
+
+      this.novoJogo.casa.time = this.times[index];
+      this.novoJogo.casa.gols = 0;
+
+      this.novoJogo.fora.time = this.times[indexFora];
+      this.novoJogo.fora.gols = 0;
+      this.showView('novojogo');
+    },
+    showView(view) {
+      this.view = view;
+    },
+    sortBy(coluna) {
+      this.order.keys = coluna;
+      this.order.sort = this.order.sort == 'desc' ? 'asc' : 'desc';
+    }
+  },
+  computed: {
+    timesFiltered() {
+      let colecao = _.orderBy(this.times, this.order.keys, this.order.sort);
+
+      return _.filter(colecao, item => {
+        return item.nome.indexOf(this.filter) >= 0;
+      });
     }
   },
   filters: {
